@@ -7,6 +7,7 @@ Here is a simple flow chart:
 sequenceDiagram
     participant browser
     participant server
-
+    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/notes
+    server-->>browser: HTML document
     
 ```
