@@ -1,5 +1,13 @@
 import { useState } from 'react'
 
+const Heading = ({heading}) =>{
+  return(
+    <div>
+      <h1>{heading}</h1>
+    </div>
+  )
+}
+
 const App = () => {
   const anecdotes = [
     'If it hurts, do it more often.',
@@ -18,6 +26,8 @@ const App = () => {
     votes_begin[i] = 0
   }
   const[votes, setVotes] = useState(votes_begin)
+  const[maxVotes,setMaxVotes] = useState(0)
+  const[maxVotesIndex,setMaxVotesIndex] = useState(0)
 
   
 
@@ -29,15 +39,31 @@ const App = () => {
 
   const handleVote = () => {
     let updated_votes = {...votes}
+    let updatedMaxVotes = maxVotes
+    let updatedMaxIndex = maxVotesIndex
+
     updated_votes[selected] += 1
     setVotes(updated_votes)
+    
+    for(let i=0;i<anecdotes.length;i++){
+      if (updated_votes[i] > updatedMaxVotes){
+        updatedMaxVotes = updated_votes[i]
+        updatedMaxIndex = i
+      }
+    }
+    setMaxVotes(updatedMaxVotes)
+    setMaxVotesIndex(updatedMaxIndex)
   }
+
   return (
     <div>
-      {anecdotes[selected]}
+      <Heading heading="Anecdote of the day"/>
+      <p>{anecdotes[selected]}</p>
       <p>has {votes[selected]} votes</p>
       <button onClick={handleVote}>vote</button>
       <button onClick={handleNextClick}>next anecdote</button>
+      <Heading heading="Anecdote with most votes"/>
+      <p>{anecdotes[maxVotesIndex]}</p>
     </div>
   )
 }
