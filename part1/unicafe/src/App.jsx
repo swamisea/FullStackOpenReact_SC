@@ -8,9 +8,25 @@ const Heading = ({ heading }) => {
   );
 };
 
-const Statistics = ({ total, average, positive }) => {
+const Statistics = ({ good, neutral, bad, total }) => {
+  const positive = (good/total)*100;
+  const average = (good * 1 + bad * -1) / total;
+
+  if (total === 0) {
+    return (
+      <div>
+        <p>No feedback given</p>
+      </div>
+    );
+  }
   return (
     <div>
+      good {good}
+      <br />
+      neutral {neutral}
+      <br />
+      bad {bad}
+      <br />
       all {total}
       <br />
       average {average}
@@ -26,8 +42,6 @@ const App = () => {
   const [neutral, setNeutral] = useState(0);
   const [bad, setBad] = useState(0);
   const [total, setTotal] = useState(0);
-  const positive = good / total;
-  const average = (good * 1 + bad * -1) / total;
 
   return (
     <div>
@@ -58,13 +72,7 @@ const App = () => {
       </button>
       <Heading heading="statistics" />
       <p>
-        good {good}
-        <br />
-        neutral {neutral}
-        <br />
-        bad {bad}
-        <br />
-        <Statistics total={total} average={average} positive={positive}/>
+        <Statistics good={good} neutral={neutral} bad={bad} total={total} />
       </p>
     </div>
   );
