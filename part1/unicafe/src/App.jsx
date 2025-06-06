@@ -9,7 +9,7 @@ const Heading = ({ heading }) => {
 };
 
 const Statistics = ({ good, neutral, bad, total }) => {
-  const positive = (good/total)*100;
+  const positive = (good / total) * 100;
   const average = (good * 1 + bad * -1) / total;
 
   if (total === 0) {
@@ -21,20 +21,23 @@ const Statistics = ({ good, neutral, bad, total }) => {
   }
   return (
     <div>
-      good {good}
-      <br />
-      neutral {neutral}
-      <br />
-      bad {bad}
-      <br />
-      all {total}
-      <br />
-      average {average}
-      <br />
-      positive {positive} %
+      <StatisticLine text='good' value={good}/>
+      <StatisticLine text='neutral' value={neutral}/>
+      <StatisticLine text='bad' value={bad}/>
+      <StatisticLine text='all' value={total}/>
+      <StatisticLine text='average' value={average}/>
+      <StatisticLine text='positive' value={positive} specialchar="%"/>
     </div>
   );
 };
+
+const Button = ({ onClick, text }) => <button onClick={onClick}>{text}</button>;
+
+const StatisticLine = ({ text, value, specialchar = "" }) => (
+  <p>
+    {text} {value}{specialchar}
+  </p>
+);
 
 const App = () => {
   // save clicks of each button to its own state
@@ -43,33 +46,24 @@ const App = () => {
   const [bad, setBad] = useState(0);
   const [total, setTotal] = useState(0);
 
+  const handleGoodClick = () => {
+    setGood(good + 1);
+    setTotal(total + 1);
+  };
+  const handleNeutralClick = () => {
+    setNeutral(neutral + 1);
+    setTotal(total + 1);
+  };
+  const handleBadClick = () => {
+    setBad(bad + 1);
+    setTotal(total + 1);
+  };
   return (
     <div>
       <Heading heading="give feedback" />
-      <button
-        onClick={() => {
-          setGood(good + 1);
-          setTotal(total + 1);
-        }}
-      >
-        good
-      </button>
-      <button
-        onClick={() => {
-          setNeutral(neutral + 1);
-          setTotal(total + 1);
-        }}
-      >
-        neutral
-      </button>
-      <button
-        onClick={() => {
-          setBad(bad + 1);
-          setTotal(total + 1);
-        }}
-      >
-        bad
-      </button>
+      <Button onClick={handleGoodClick} text='good'/>
+      <Button onClick={handleNeutralClick} text='neutral'/>
+      <Button onClick={handleBadClick} text='bad'/>
       <Heading heading="statistics" />
       <p>
         <Statistics good={good} neutral={neutral} bad={bad} total={total} />
