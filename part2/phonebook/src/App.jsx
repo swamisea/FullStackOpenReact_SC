@@ -1,102 +1,156 @@
-import { useState, useEffect } from 'react';
-import axios from "axios";
+import { useState, useEffect } from "react";
+import phoneService from "./services/phonebook";
 
-
-const Filter = ({onChangeFunc, filterString}) => {
-  return(
-    <div>filter shown with <input onChange={onChangeFunc} value={filterString}/></div>
-  )
-}
-
-const Form = (props) =>{
+const Filter = ({ onChangeFunc, filterString }) => {
   return (
-    <form onSubmit = {props.onSubmitFunc}>
-        <div>name: <input onChange={props.handleAddPersonOnChange} value={props.newName}/></div>
-        <div>number: <input onChange={props.handleAddNumberOnChange} value={props.newNumber}/></div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
-  )
-}
-
-const Person = ({name, number}) =>{
-  return <p>{name} {number}</p>
-}
-
-const Display = ({persons, filterString}) =>{
-  return(
     <div>
-      {
-      persons
-      .filter(person => person.name.toLowerCase().startsWith(filterString))
-      .map((person,index) => <Person key={index} name={person.name} number={person.number}/>)
-      }
+      filter shown with <input onChange={onChangeFunc} value={filterString} />
     </div>
-  )
-}
+  );
+};
+
+const Form = (props) => {
+  return (
+    <form onSubmit={props.onSubmitFunc}>
+      <div>
+        name:{" "}
+        <input onChange={props.handleAddPersonOnChange} value={props.newName} />
+      </div>
+      <div>
+        number:{" "}
+        <input
+          onChange={props.handleAddNumberOnChange}
+          value={props.newNumber}
+        />
+      </div>
+      <div>
+        <button type="submit">add</button>
+      </div>
+    </form>
+  );
+};
+
+const Person = ({ name, number, onDelete }) => {
+  return (
+    <div>
+      {name} {number} <button onClick={onDelete}>delete</button>
+    </div>
+  );
+};
+
+const Display = ({ persons, filterString, onDelete}) => {
+  return (
+    <div>
+      {persons
+        .filter((person) => person.name.toLowerCase().startsWith(filterString))
+        .map((person, index) => (
+          <Person
+            key={index}
+            name={person.name}
+            number={person.number}
+            onDelete = {() => onDelete(index+1, person.name)}
+          />
+        ))}
+    </div>
+  );
+};
 
 const App = () => {
-  const [persons, setPersons] = useState([]) 
-  const [newName, setNewName] = useState('')
-  const [newNumber, setNewNumber] = useState('')
-  const [filterString, setFilterString] = useState('')
+  const [persons, setPersons] = useState([]);
+  const [newName, setNewName] = useState("");
+  const [newNumber, setNewNumber] = useState("");
+  const [filterString, setFilterString] = useState("");
 
-  const hook = () =>{
-    axios
-    .get("http://localhost:3001/persons")
-    .then(response =>{
-      console.log(response.data)
-      setPersons(response.data)
-    })
-  }
-  useEffect(hook,[])
+  const hook = () => {
+    phoneService.getAll().then((personsData) => {
+      setPersons(personsData);
+    });
+  };
+  useEffect(hook, []);
 
+  const handleAddPerson = (event) => {
+    event.preventDefault();
+    var newPerson = {
+      name: newName,
+      number: newNumber,
+      id: `${persons.length + 1}`,
+    };
+    if (persons.filter((person) => person.name === newName).length) {
+      if(window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)){
+        console.log("Modify contact")
+        handleModifyPerson(newName, newNumber)
+      }
+      else{
+        console.log("Do not modify any contact")
+      }
+    } else if (persons.filter((person) => person.number === newNumber).length) {
+      alert(`${newNumber} is already added to phonebook`);
+    } else if (!newName && !newNumber) {
+      alert(`Name and Number are required fields`);
+    } else if (!newName) {
+      alert(`Name is a required field`);
+    } else if (!newNumber) {
+      alert(`Number is a required field`);
+    } else {
+      phoneService.addPerson(newPerson).then((response) => {
+        setPersons(persons.concat(response.data));
+      });
+    }
+  };
 
-  const handleAddPerson = (event) =>{
-    event.preventDefault()
-    var newPerson = {name: newName, number: newNumber}
-    if(persons.filter(person => person.name === newName).length){
-      alert(`${newName} is already added to phonebook`)
-    }
-    else if(persons.filter(person => person.number === newNumber).length){
-      alert(`${newNumber} is already added to phonebook`)
-    }
-    else if(!newName && !newNumber){
-      alert(`Name and Number are required fields`)
-    }
-    else if(!newName){
-      alert(`Name is a required field`)
-    }
-    else if(!newNumber){
-      alert(`Number is a required field`)
+  const handleDeletePerson = (id, name) => {
+    if (window.confirm(`Delete ${name}?` )) {
+    setPersons(persons.filter((person) => person.id != id))
+      phoneService
+    .deletePerson(id)
+    .then(response => console.log(response))
+    .catch(() => console.log("This person has already been deleted"))
     }
     else{
-      setPersons(persons.concat(newPerson))
+      console.log("DO NOT DELETE THIS PERSON")
     }
+  };
+
+  const handleModifyPerson = (name,newNumber) =>{
+    const person = persons.find((person) => person.name === name);
+    const changedPerson = { ...person, number: newNumber };
+    const updatedPersons = persons.map(person => {
+     if (person.name === newName) {
+       return changedPerson
+     }
+     return person;
+   });
+   setPersons(updatedPersons)
+    phoneService
+    .updatePerson(changedPerson.id, changedPerson)
   }
 
-  const handleAddPersonOnChange = (event) =>{
-    setNewName(event.target.value)
-  }
+  const handleAddPersonOnChange = (event) => {
+    setNewName(event.target.value);
+  };
 
-  const handleAddNumberOnChange = (event) =>{
-    setNewNumber(event.target.value)
-  }
+  const handleAddNumberOnChange = (event) => {
+    setNewNumber(event.target.value);
+  };
 
-  const handleFilterOnChange = (event) =>{
-    setFilterString(event.target.value.toLowerCase())
-  }
+  const handleFilterOnChange = (event) => {
+    setFilterString(event.target.value.toLowerCase());
+  };
   return (
     <div>
       <h2>Phonebook</h2>
-      <Filter onChangeFunc={handleFilterOnChange} filterString={filterString}/>
-      <Form onSubmitFunc={handleAddPerson} handleAddPersonOnChange={handleAddPersonOnChange} handleAddNumberOnChange={handleAddNumberOnChange}
-      newName = {newName} newNumber={newNumber}/>
+      <Filter onChangeFunc={handleFilterOnChange} filterString={filterString} />
+      <Form
+        onSubmitFunc={handleAddPerson}
+        handleAddPersonOnChange={handleAddPersonOnChange}
+        handleAddNumberOnChange={handleAddNumberOnChange}
+        newName={newName}
+        newNumber={newNumber}
+      />
       <h2>Numbers</h2>
-      <Display persons={persons} filterString={filterString}/>
+      <Display persons={persons} filterString={filterString} onDelete={handleDeletePerson}/>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
