@@ -150,11 +150,19 @@ const App = () => {
      }
      return person;
    });
-   setNotifMessage(`Updated number of ${name}`)
-   setNotifSentiment("pos")
-   setPersons(updatedPersons)
+   
     phoneService
     .updatePerson(changedPerson.id, changedPerson)
+    .then(() => {
+      setNotifMessage(`Updated number of ${name}`)
+      setNotifSentiment("pos")
+      setPersons(updatedPersons)
+    })
+    .catch(() => {
+      setNotifMessage(`Information of ${name} has already been removed from the server`)
+      setNotifSentiment("neg")
+      setPersons(persons.filter(p => p.id !== changedPerson.id));
+    })
   }
 
   const handleAddPersonOnChange = (event) => {
