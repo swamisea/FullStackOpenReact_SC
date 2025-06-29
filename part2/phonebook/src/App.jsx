@@ -11,6 +11,8 @@ const Filter = ({ onChangeFunc, filterString }) => {
 
 const Form = (props) => {
   return (
+    <div>
+    <h2>add a new</h2>
     <form onSubmit={props.onSubmitFunc}>
       <div>
         name:{" "}
@@ -27,6 +29,7 @@ const Form = (props) => {
         <button type="submit">add</button>
       </div>
     </form>
+    </div>
   );
 };
 
@@ -55,11 +58,33 @@ const Display = ({ persons, filterString, onDelete}) => {
   );
 };
 
+const Notification = ({ message, sent }) => {
+  if (message === null) {
+    return null
+  }
+  if (sent === "pos"){
+    return (
+    <div className='success'>
+      {message}
+    </div>
+  )
+  }
+  else{
+    return (
+    <div className='error'>
+      {message}
+    </div>
+  )
+  }
+}
+
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filterString, setFilterString] = useState("");
+  const [notifMessage, setNotifMessage] = useState(null);
+  const [notifSentiment, setNotifSentiment] = useState("");
 
   const hook = () => {
     phoneService.getAll().then((personsData) => {
@@ -94,6 +119,8 @@ const App = () => {
     } else {
       phoneService.addPerson(newPerson).then((response) => {
         setPersons(persons.concat(response.data));
+        setNotifMessage(`Added ${newPerson.name}`)
+        setNotifSentiment("pos")
       });
     }
   };
@@ -105,6 +132,9 @@ const App = () => {
     .deletePerson(id)
     .then(response => console.log(response))
     .catch(() => console.log("This person has already been deleted"))
+
+    setNotifMessage(`${name} has been deleted`)
+    setNotifSentiment("pos")
     }
     else{
       console.log("DO NOT DELETE THIS PERSON")
@@ -120,6 +150,8 @@ const App = () => {
      }
      return person;
    });
+   setNotifMessage(`Updated number of ${name}`)
+   setNotifSentiment("pos")
    setPersons(updatedPersons)
     phoneService
     .updatePerson(changedPerson.id, changedPerson)
@@ -139,6 +171,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notifMessage} sent={notifSentiment}/>
       <Filter onChangeFunc={handleFilterOnChange} filterString={filterString} />
       <Form
         onSubmitFunc={handleAddPerson}
